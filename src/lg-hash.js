@@ -1,5 +1,6 @@
 var hashDefaults = {
-    hash: true
+    hash: true,
+    ignoreHashHistory: false
 };
 var Hash = function(element) {
     this.el = element;
@@ -19,7 +20,11 @@ Hash.prototype.init = function() {
 
     // Change hash value on after each slide transition
     utils.on(_this.core.el, 'onAfterSlide.lgtm', function(event) {
-        window.location.hash = 'lg=' + _this.core.s.galleryId + '&slide=' + event.detail.index;
+        if(_this.core.s.ignoreHashHistory && history.replaceState){
+            history.replaceState(undefined, undefined, '#lg=' + _this.core.s.galleryId + '&slide=' + event.detail.index);
+        }else{
+            window.location.hash = 'lg=' + _this.core.s.galleryId + '&slide=' + event.detail.index;
+        }
     });
 
     // Listen hash change and change the slide according to slide value
@@ -45,7 +50,9 @@ Hash.prototype.destroy = function() {
     if (this.oldHash && this.oldHash.indexOf('lg=' + this.core.s.galleryId) < 0) {
         window.location.hash = this.oldHash;
     } else {
-        if (history.pushState) {
+        if(this.core.s.ignoreHashHistory && history.replaceState){
+            history.replaceState(undefined, undefined,  window.location.pathname + window.location.search);
+        } else if (history.pushState) {
             history.pushState('', document.title, window.location.pathname + window.location.search);
         } else {
             window.location.hash = '';
